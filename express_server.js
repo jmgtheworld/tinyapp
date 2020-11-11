@@ -14,7 +14,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// Renders with urls_index with username, and urlDatabase
+// Renders urls_index ( /urls ) with username, and urlDatabase
 app.get("/urls", (req,res) => {
   const templateVars = { 
     username: req.cookies["username"],
@@ -23,7 +23,7 @@ app.get("/urls", (req,res) => {
   res.render("urls_index", templateVars);
 })
 
-// Renders with urls_new with username
+// Renders with urls_new ( /urls/new ) with username
 app.get("/urls/new", (req,res) => {
   const templateVars = { 
     username: req.cookies["username"],
