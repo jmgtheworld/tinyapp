@@ -9,6 +9,19 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 app.use(cookieParser());
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -20,6 +33,7 @@ app.get("/urls", (req,res) => {
     username: req.cookies["username"],
     urls: urlDatabase 
   };
+  
   res.render("urls_index", templateVars);
 })
 
@@ -37,7 +51,6 @@ app.post("/urls/:shortURL", (req,res) => {
   res.redirect("/urls");
 });
 
-
 // Create new tinyURL with random 6 digit alpha-numeric value
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
@@ -46,16 +59,18 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-// Show page with long/short URLs.
+// Show page with long/short URLs. If not exisiting, notify it doesn't exist
 app.get("/urls/:shortURL", (req,res) => {
   const templateVars = { 
     username: req.cookies["username"],
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL]
   };
+
   if (urlDatabase[req.params.shortURL]) {
     res.render("urls_show", templateVars);
   }
+
   else {
     const templateVars = { 
       username: req.cookies["username"],
@@ -83,13 +98,34 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls');
-})
+});
 
 // clear cookie with username info, and redirect to /urls
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
-})
+});
+
+// Render register page 
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    username: req.cookies["username"],
+  };
+  res.render('urls_register', templateVars);
+});
+
+// Handle user registration post request
+app.post("/register", (req,res) => {
+  let userID = generateRandomString();
+  users[userID] = {};
+  users[userID]['id'] = userID;
+  users[userID]['email'] = req.body.email;
+  users[userID]['password'] = req.body.password;
+  res.cookie('username', users[userID]);
+  console.log(users);
+  res.redirect("/urls");
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
