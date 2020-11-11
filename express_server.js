@@ -14,6 +14,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// Renders with urls_index with username, and urlDatabase
 app.get("/urls", (req,res) => {
   const templateVars = { 
     username: req.cookies["username"],
@@ -22,6 +23,7 @@ app.get("/urls", (req,res) => {
   res.render("urls_index", templateVars);
 })
 
+// Renders with urls_new with username
 app.get("/urls/new", (req,res) => {
   const templateVars = { 
     username: req.cookies["username"],
@@ -29,11 +31,14 @@ app.get("/urls/new", (req,res) => {
   res.render('urls_new', templateVars);
 });
 
+// Update with NewURL
 app.post("/urls/:shortURL", (req,res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect("/urls");
 });
 
+
+// Create new tinyURL with random 6 digit alpha-numeric value
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
@@ -41,8 +46,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-
-
+// Show page with long/short URLs.
 app.get("/urls/:shortURL", (req,res) => {
   const templateVars = { 
     username: req.cookies["username"],
@@ -62,22 +66,26 @@ app.get("/urls/:shortURL", (req,res) => {
   }
 });
 
+// Delete url 
 app.post("/urls/:shortURL/delete", (req,res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
 
+// Redirect shortURL anchor to the actual longURL link
 app.get("/u/:shortURL", (req, res) => {
   console.log(req.params.shortURL);
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
+// register username info to cookie and redirect to /urls
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls');
 })
 
+// clear cookie with username info, and redirect to /urls
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
   res.redirect('/urls');
