@@ -1,14 +1,10 @@
 const findIDbyEmail = require('./helpers');
-
 const cookieSession = require("cookie-session");
 const express = require("express");
 const app = express();
-
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-
 const bcrypt = require('bcrypt');
-
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
@@ -45,8 +41,7 @@ const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3"},
   "9sm5xK": { longURL: "http://www.google.com", userID: "user3"},
   "k349sd": { longURL: "http://youtube.com", userID: "abcdef"},
-
-};
+}
 
 const urlsForUser = (id) => {
   let urlforID = {};
@@ -67,17 +62,15 @@ app.get("/urls", (req,res) => {
       username: null,
       urls: null,
       message: "Please Login or Register"
-    };
+    }
     res.render("urls_index", templateVars);
   } else {
-
   const urlforID = urlsForUser(req.session.user_id);
   const templateVars = { 
     username: users[req.session.user_id]["email"],
     urls: urlforID,
     message: null
-  };
-
+  }
   res.render("urls_index", templateVars);
   }
 });
@@ -89,7 +82,7 @@ app.get("/urls/new", (req,res) => {
   } else {
     const templateVars = { 
       username: users[req.session.user_id]["email"],
-    };
+    }
     res.render('urls_new', templateVars);
   }
 });
@@ -109,16 +102,13 @@ app.post("/urls/:shortURL", (req,res) => {
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
-  
   urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id}; // create shortURL:longURL key:value pair
   res.redirect(`/urls/${shortURL}`);
-  
 });
 
 // Show page with long/short URLs. If not exisiting, notify it doesn't exist
 app.get("/urls/:shortURL", (req,res) => {
   const urlforID = urlsForUser(req.session.user_id);
-
   const templateVars = { 
     username: users[req.session.user_id]["email"],
     shortURL: req.params.shortURL, 
@@ -158,7 +148,6 @@ app.get("/u/:shortURL", (req, res) => {
 // Handle login (compare email/pw/userID)
 app.post("/login", (req, res) => {
   const {email, password} = req.body;
-
    //Check User
   if (! checkUserCredentials(users, email, password)) {
     res.send("403. That's an error!!");
@@ -174,7 +163,6 @@ app.post("/login", (req, res) => {
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect('/urls');
-
 });
 
 // Render register page 
@@ -189,7 +177,6 @@ app.get("/register", (req, res) => {
 app.post("/register", (req,res) => {
   const {email, password} = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  console.log(hashedPassword);
   const foundUser = checkUser(users, email);
 
   // if email / pw is empty, send 400 error
@@ -207,7 +194,6 @@ app.post("/register", (req,res) => {
   req.session.user_id = userID;
 
   return res.redirect("/urls");
-
 });
 
 app.get("/login", (req, res) => {
@@ -235,7 +221,7 @@ const checkUser = (users, nEmail) => {
   let userKeys = Object.keys(users);
   for (user of userKeys) {
     if (users[user].email === nEmail) {
-        return true;
+      return true;
     }
   }
   return false;
@@ -243,7 +229,6 @@ const checkUser = (users, nEmail) => {
 
 
 const checkUserCredentials = (users, nEmail, password) => {
-
   let userKeys = Object.keys(users);
   for (user of userKeys) {
     if (users[user].email === nEmail && bcrypt.compareSync(password, users[user].password)) {
