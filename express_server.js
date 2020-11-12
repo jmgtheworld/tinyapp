@@ -1,3 +1,5 @@
+const findIDbyEmail = require('./helpers');
+
 const cookieSession = require("cookie-session");
 const express = require("express");
 const app = express();
@@ -54,14 +56,6 @@ const urlsForUser = (id) => {
     }
   }
   return urlforID;
-}
-
-const findIDbyEmail = (email) => {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return users[user]["id"];
-    }
-  }
 }
 
 // Renders urls_index ( /urls ) with username, and urlDatabase  
@@ -169,7 +163,7 @@ app.post("/login", (req, res) => {
     res.send("403. That's an error!!");
   } else {
   
-    const userID = findIDbyEmail(req.body.email)
+    const userID = findIDbyEmail(req.body.email, users)
     req.session.user_id = userID;
     console.log(userID);
     res.redirect('/urls');
