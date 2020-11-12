@@ -150,7 +150,8 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 
 // Redirect shortURL anchor to the actual longURL link
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlforID[req.params.shortURL];
+  console.log(req.params.shortURL);
+  const longURL = urlDatabase[req.params.shortURL]["longURL"];
   res.redirect(longURL);
 });
 
@@ -162,7 +163,6 @@ app.post("/login", (req, res) => {
   if (! checkUserCredentials(users, email, password)) {
     res.send("403. That's an error!!");
   } else {
-  
     const userID = findIDbyEmail(req.body.email, users)
     req.session.user_id = userID;
     console.log(userID);
