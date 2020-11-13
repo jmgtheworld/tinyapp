@@ -1,10 +1,11 @@
-const findIDbyEmail = require('./helpers');
+const { findIDbyEmail } = require('./helpers');
 const cookieSession = require("cookie-session");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
+const salt = bcrypt.genSaltSync(10);
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
@@ -53,6 +54,20 @@ const urlsForUser = (id) => {
   return urlforID;
 }
 
+const checkUserCredentials = (users, email, password) => {
+  console.log('password',password);
+
+  let userKeys = Object.keys(users);
+  for (user of userKeys) {
+    // console.log(bcrypt.compareSync(users[user].password, password));
+    console.log("user's user password:", users[user]['password']);
+    if (users[user].email === email && bcrypt.compareSync(password, users[user]['password'])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Renders urls_index ( /urls ) with username, and urlDatabase  
 app.get("/urls", (req,res) => {
   let userEmail;
@@ -78,7 +93,7 @@ app.get("/urls", (req,res) => {
 // Renders with urls_new ( /urls/new ) with username - if not logged in redirect to register
 app.get("/urls/new", (req,res) => {
   if (!req.session.user_id) {
-    res.redirect("/register");
+    res.redirect("/login");
   } else {
     const templateVars = { 
       username: users[req.session.user_id]["email"],
@@ -108,26 +123,31 @@ app.post("/urls", (req, res) => {
 
 // Show page with long/short URLs. If not exisiting, notify it doesn't exist
 app.get("/urls/:shortURL", (req,res) => {
-  const urlforID = urlsForUser(req.session.user_id);
-  const templateVars = { 
-    username: users[req.session.user_id]["email"],
-    shortURL: req.params.shortURL, 
-    longURL: urlforID[req.params.shortURL]
-  };
-  console.log(req.params.shortURL);
-  console.log("urlforid", urlforID);
-  if (urlforID[req.params.shortURL]) {
-    res.render("urls_show", templateVars);
-  }
-
-  else {
+  if (urlDatabase[req.params.shortURL] && req.session.user_id === urlDatabase[req.params.shortURL]["userID"]) {
+    const urlforID = urlsForUser(req.session.user_id);
     const templateVars = { 
       username: users[req.session.user_id]["email"],
-      shortURL: req.params.shortURL + " Doesn't exist in database!", 
-      longURL: "Non exisitent shortURL",
+      shortURL: req.params.shortURL, 
+      longURL: urlforID[req.params.shortURL]
     };
-    res.render("urls_show", templateVars )
+    console.log(req.params.shortURL);
+    console.log("urlforid", urlforID);
+    if (urlforID[req.params.shortURL]) {
+      res.render("urls_show", templateVars);
+    } else {
+      const templateVars = { 
+        username: users[req.session.user_id]["email"],
+        shortURL: req.params.shortURL + " Doesn't exist in database!", 
+        longURL: "Non exisitent shortURL",
+      };
+      res.render("urls_show", templateVars )
+    } 
+  } else if (!urlDatabase[req.params.shortURL]) {
+    res.send("Short URL Doesn't Exist!");
+  } else {
+    res.send("No Access");
   }
+
 });
 
 // Delete url 
@@ -140,19 +160,24 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 
 // Redirect shortURL anchor to the actual longURL link
 app.get("/u/:shortURL", (req, res) => {
-  console.log(req.params.shortURL);
-  const longURL = urlDatabase[req.params.shortURL]["longURL"];
-  res.redirect(longURL);
+  if (!urlDatabase[req.params.shortURL]){
+    res.send("Short URL link doesn't exist!")
+  } else {
+    console.log(req.params.shortURL);
+    const longURL = urlDatabase[req.params.shortURL]["longURL"];
+    res.redirect(longURL);
+  }
 });
 
 // Handle login (compare email/pw/userID)
 app.post("/login", (req, res) => {
   const {email, password} = req.body;
+  // const hashedPassword = bcrypt.hashSync(password, 10);
    //Check User
-  if (! checkUserCredentials(users, email, password)) {
+  if (!checkUserCredentials(users, email, password)) {
     res.send("403. That's an error!!");
   } else {
-    const userID = findIDbyEmail(req.body.email, users)
+    const userID = findIDbyEmail(email, users)
     req.session.user_id = userID;
     console.log(userID);
     res.redirect('/urls');
@@ -167,16 +192,20 @@ app.post("/logout", (req, res) => {
 
 // Render register page 
 app.get("/register", (req, res) => {
-  const templateVars = { 
-    username: null,
-  };
-  res.render('urls_register', templateVars);
+  if (req.session.user_id) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = { 
+      username: null,
+    };
+    res.render('urls_register', templateVars);
+  }
 });
 
 // Handle user registration post request
 app.post("/register", (req,res) => {
   const {email, password} = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  const hashedPassword = bcrypt.hashSync(password, salt);
   const foundUser = checkUser(users, email);
 
   // if email / pw is empty, send 400 error
@@ -197,10 +226,14 @@ app.post("/register", (req,res) => {
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { 
-    username: null,
-  };
-  res.render("urls_login", templateVars )
+  if (req.session.user_id) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = { 
+      username: null,
+    };
+    res.render("urls_login", templateVars )
+  }
 })
 
 
@@ -228,15 +261,6 @@ const checkUser = (users, nEmail) => {
 }
 
 
-const checkUserCredentials = (users, nEmail, password) => {
-  let userKeys = Object.keys(users);
-  for (user of userKeys) {
-    if (users[user].email === nEmail && bcrypt.compareSync(password, users[user].password)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 
 
