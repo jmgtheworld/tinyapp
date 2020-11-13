@@ -39,9 +39,9 @@ const users = {
 }
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3"},
-  "9sm5xK": { longURL: "http://www.google.com", userID: "user3"},
-  "k349sd": { longURL: "http://youtube.com", userID: "abcdef"},
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3", date: "2020-11-12"},
+  "9sm5xK": { longURL: "http://www.google.com", userID: "user3", date: "2020-11-12"},
+  "k349sd": { longURL: "http://youtube.com", userID: "abcdef", date: "2020-11-12"},
 }
 
 const urlsForUser = (id) => {
@@ -52,6 +52,16 @@ const urlsForUser = (id) => {
     }
   }
   return urlforID;
+}
+
+const checkUser = (users, nEmail) => {
+  let userKeys = Object.keys(users);
+  for (user of userKeys) {
+    if (users[user].email === nEmail) {
+      return true;
+    }
+  }
+  return false;
 }
 
 const checkUserCredentials = (users, email, password) => {
@@ -68,6 +78,8 @@ const checkUserCredentials = (users, email, password) => {
   return false;
 }
 
+
+
 // Renders urls_index ( /urls ) with username, and urlDatabase  
 app.get("/urls", (req,res) => {
   let userEmail;
@@ -75,6 +87,7 @@ app.get("/urls", (req,res) => {
   if (!req.session.user_id) {
     const templateVars = { 
       username: null,
+      date: null,
       urls: null,
       message: "Please Login or Register"
     }
@@ -83,6 +96,7 @@ app.get("/urls", (req,res) => {
   const urlforID = urlsForUser(req.session.user_id);
   const templateVars = { 
     username: users[req.session.user_id]["email"],
+    date:  "2020/11/12",
     urls: urlforID,
     message: null
   }
@@ -117,7 +131,10 @@ app.post("/urls/:shortURL", (req,res) => {
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id}; // create shortURL:longURL key:value pair
+  let todayDate = new Date().toISOString().slice(0, 10);
+  console.log(todayDate)
+  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id, date: todayDate }; // create shortURL:longURL key:value pair
+  console.log(urlDatabase[shortURL])
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -250,15 +267,7 @@ function generateRandomString() {
   return result;
 }
 
-const checkUser = (users, nEmail) => {
-  let userKeys = Object.keys(users);
-  for (user of userKeys) {
-    if (users[user].email === nEmail) {
-      return true;
-    }
-  }
-  return false;
-}
+
 
 
 
