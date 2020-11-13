@@ -78,7 +78,14 @@ const checkUserCredentials = (users, email, password) => {
   return false;
 }
 
-
+app.get("/", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+  }
+  else{
+    res.redirect("/login");
+  }
+})
 
 // Renders urls_index ( /urls ) with username, and urlDatabase  
 app.get("/urls", (req,res) => {
