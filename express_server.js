@@ -125,12 +125,16 @@ app.get("/urls/new", (req,res) => {
 
 // Update with NewURL
 app.post("/urls/:shortURL", (req,res) => {
-  if (req.session.user_id === urlDatabase[req.params.shortURL]["userID"]) {
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-    res.redirect("/urls");
-  }
-  else {
-    res.send("No Access");
+  if (!req.session.user_id ) {
+    res.send('Not logged in!');
+  } else {
+    if (req.session.user_id === urlDatabase[req.params.shortURL]["userID"]) {
+      urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+      res.redirect("/urls");
+    }
+    else {
+      res.send("No Access");
+    }
   }
 });
 
@@ -176,10 +180,14 @@ app.get("/urls/:shortURL", (req,res) => {
 
 // Delete url 
 app.post("/urls/:shortURL/delete", (req,res) => {
-  if (req.session.user_id === urlDatabase[req.params.shortURL]["userID"]) {
-    delete urlDatabase[req.params.shortURL];
+  if(!req.session.user_id)  {
+    res.send("Not logged in");
+  } else {
+    if (req.session.user_id === urlDatabase[req.params.shortURL]["userID"]) {
+      delete urlDatabase[req.params.shortURL];
+    }
+    res.redirect("/urls");
   }
-  res.redirect("/urls");
 });
 
 // Redirect shortURL anchor to the actual longURL link
