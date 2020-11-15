@@ -54,6 +54,16 @@ const urlsForUser = (id) => {
   return urlforID;
 }
 
+const dateforURL = (id) => {
+  let date = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL]["userID"] === id) { 
+      date[shortURL] = urlDatabase[shortURL].date;
+    }
+  }
+  return date;
+}
+
 const checkUser = (users, nEmail) => {
   let userKeys = Object.keys(users);
   for (user of userKeys) {
@@ -101,10 +111,11 @@ app.get("/urls", (req,res) => {
     res.render("urls_index", templateVars);
   } else {
   const urlforID = urlsForUser(req.session.user_id);
+  const URLdates = dateforURL(req.session.user_id);
   const templateVars = { 
     username: users[req.session.user_id]["email"],
-    date:  "2020/11/12",
     urls: urlforID,
+    date: URLdates,
     message: null
   }
   res.render("urls_index", templateVars);
@@ -143,7 +154,6 @@ app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
   let todayDate = new Date().toISOString().slice(0, 10);
-  console.log(todayDate)
   urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id, date: todayDate }; // create shortURL:longURL key:value pair
   console.log(urlDatabase[shortURL])
   res.redirect(`/urls/${shortURL}`);
