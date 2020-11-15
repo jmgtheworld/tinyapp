@@ -80,7 +80,6 @@ const checkUserCredentials = (users, email, password) => {
   let userKeys = Object.keys(users);
   for (user of userKeys) {
     // console.log(bcrypt.compareSync(users[user].password, password));
-    console.log("user's user password:", users[user]['password']);
     if (users[user].email === email && bcrypt.compareSync(password, users[user]['password'])) {
       return true;
     }
@@ -151,11 +150,9 @@ app.post("/urls/:shortURL", (req,res) => {
 
 // Create new tinyURL with random 6 digit alpha-numeric value
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
   let todayDate = new Date().toISOString().slice(0, 10);
   urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id, date: todayDate }; // create shortURL:longURL key:value pair
-  console.log(urlDatabase[shortURL])
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -168,8 +165,6 @@ app.get("/urls/:shortURL", (req,res) => {
       shortURL: req.params.shortURL, 
       longURL: urlforID[req.params.shortURL]
     };
-    console.log(req.params.shortURL);
-    console.log("urlforid", urlforID);
     if (urlforID[req.params.shortURL]) {
       res.render("urls_show", templateVars);
     } else {
@@ -205,7 +200,6 @@ app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]){
     res.send("Short URL link doesn't exist!")
   } else {
-    console.log(req.params.shortURL);
     const longURL = urlDatabase[req.params.shortURL]["longURL"];
     res.redirect(longURL);
   }
@@ -214,8 +208,7 @@ app.get("/u/:shortURL", (req, res) => {
 // Handle login (compare email/pw/userID)
 app.post("/login", (req, res) => {
   const {email, password} = req.body;
-  // const hashedPassword = bcrypt.hashSync(password, 10);
-   //Check User
+  //Check User
   if (!checkUserCredentials(users, email, password)) {
     res.send("403. That's an error!!");
   } else {
