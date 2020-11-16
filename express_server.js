@@ -24,7 +24,6 @@ app.use(cookieSession({
   })
 );
 
-
 app.get("/", (req, res) => {
   if (req.session.user_id) {
     res.redirect("/urls");
@@ -101,10 +100,16 @@ app.post("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req,res) => {
   if (urlDatabase[req.params.shortURL] && req.session.user_id === urlDatabase[req.params.shortURL]["userID"]) {
     const urlforID = urlsForUser(req.session.user_id);
+    const urlDates = dateforURL(req.session.user_id);
+    const urlVisits = visitforURL(req.session.user_id);
+  
     const templateVars = { 
       username: users[req.session.user_id]["email"],
       shortURL: req.params.shortURL, 
-      longURL: urlforID[req.params.shortURL]
+      longURL: urlforID[req.params.shortURL],
+      urls: urlforID,
+      date: urlDates,
+      visits: urlVisits,
     };
     if (urlforID[req.params.shortURL]) {
       res.render("urls_show", templateVars);
