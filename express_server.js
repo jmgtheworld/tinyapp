@@ -2,19 +2,19 @@ const { findIDbyEmail } = require('./helpers');
 const { urlsForUser } = require('./helpers');
 const { dateforURL } = require('./helpers');
 const { users } = require('./helpers');
+const { bcrypt } = require('./helpers');
+const { salt } = require('./helpers');
 const { urlDatabase } = require('./helpers');
 const { visitforURL } = require('./helpers');
 const { increaseVisit } = require('./helpers');
 const { checkUser } = require('./helpers');
 const { checkUserCredentials } = require('./helpers');
-
 const cookieSession = require("cookie-session");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const bcrypt = require('bcrypt');
-const salt = bcrypt.genSaltSync(10);
+
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
@@ -161,7 +161,6 @@ app.post("/login", (req, res) => {
   } else {
     const userID = findIDbyEmail(email, users)
     req.session.user_id = userID;
-    console.log(userID);
     res.redirect('/urls');
   }
 });

@@ -27,6 +27,9 @@ const users = {
   }
 }
 
+const bcrypt = require('bcrypt');
+const salt = bcrypt.genSaltSync(10);
+
 const findIDbyEmail = (email, database) => {
   for (let user in database) {
     if (database[user].email === email) {
@@ -80,8 +83,6 @@ const checkUser = (users, nEmail) => {
 }
 
 const checkUserCredentials = (users, email, password) => {
-  console.log('password',password);
-
   let userKeys = Object.keys(users);
   for (user of userKeys) {
     // console.log(bcrypt.compareSync(users[user].password, password));
@@ -95,6 +96,8 @@ const checkUserCredentials = (users, email, password) => {
 
 module.exports = { 
   users,
+  bcrypt,
+  salt,
   urlDatabase,
   findIDbyEmail,
   urlsForUser,
