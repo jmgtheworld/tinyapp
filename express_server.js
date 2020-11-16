@@ -39,9 +39,9 @@ const users = {
 }
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3", date: "2020-11-12"},
-  "9sm5xK": { longURL: "http://www.google.com", userID: "user3", date: "2020-11-12"},
-  "k349sd": { longURL: "http://youtube.com", userID: "abcdef", date: "2020-11-12"},
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "user3", date: "2020-11-12", visits: 0},
+  "9sm5xK": { longURL: "http://www.google.com", userID: "user3", date: "2020-11-12", visits: 0},
+  "k349sd": { longURL: "http://youtube.com", userID: "abcdef", date: "2020-11-12", visits: 0},
 }
 
 const urlsForUser = (id) => {
@@ -62,6 +62,20 @@ const dateforURL = (id) => {
     }
   }
   return date;
+}
+
+const visitforURL = (id) => {
+  let visits = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL]["userID"] === id) { 
+      visits[shortURL] = urlDatabase[shortURL].visits;
+    }
+  }
+  return visits;
+}
+
+const increaseVisit = (shortURL) => {
+  urlDatabase[shortURL].visits += 1;
 }
 
 const checkUser = (users, nEmail) => {
@@ -110,11 +124,14 @@ app.get("/urls", (req,res) => {
     res.render("urls_index", templateVars);
   } else {
   const urlforID = urlsForUser(req.session.user_id);
-  const URLdates = dateforURL(req.session.user_id);
+  const urlDates = dateforURL(req.session.user_id);
+  const urlVisits = visitforURL(req.session.user_id);
+
   const templateVars = { 
     username: users[req.session.user_id]["email"],
     urls: urlforID,
-    date: URLdates,
+    date: urlDates,
+    visits: urlVisits,
     message: null
   }
   res.render("urls_index", templateVars);
@@ -152,7 +169,7 @@ app.post("/urls/:shortURL", (req,res) => {
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let todayDate = new Date().toISOString().slice(0, 10);
-  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id, date: todayDate }; // create shortURL:longURL key:value pair
+  urlDatabase[shortURL] = {longURL: req.body.longURL, userID: req.session.user_id, date: todayDate, visits: 0}; // create shortURL:longURL key:value pair
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -201,6 +218,7 @@ app.get("/u/:shortURL", (req, res) => {
     res.send("Short URL link doesn't exist!")
   } else {
     const longURL = urlDatabase[req.params.shortURL]["longURL"];
+    increaseVisit(req.params.shortURL);
     res.redirect(longURL);
   }
 });
