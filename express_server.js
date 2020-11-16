@@ -108,8 +108,8 @@ app.get("/urls/:shortURL", (req,res) => {
       shortURL: req.params.shortURL, 
       longURL: urlforID[req.params.shortURL],
       urls: urlforID,
-      date: urlDates,
-      visits: urlVisits,
+      date: urlDates[req.params.shortURL],
+      visits: urlVisits[req.params.shortURL],
     };
     if (urlforID[req.params.shortURL]) {
       res.render("urls_show", templateVars);

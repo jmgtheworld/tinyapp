@@ -14,14 +14,10 @@
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
         <p class="card-text">Date Created: 
-          <% for(let url in urls) { %>
-            <%= date[url] %> 
-          <% } %>
+          <%= date %>
         </p>
         <p class="card-text"># of Visits:  
-          <% for(let url in urls) { %>
-            <%= visits[url] %> 
-          <% } %>
+          <%= visits %>
         </p>
         <!-- <p> <a href="/urls/new"> Create New URL </a> </p> -->
 
